@@ -1,6 +1,7 @@
 const express = require(`express`);
 const bodyParser = require(`body-parser`);
 const mongoose = require(`mongoose`);
+const encrypt = require(`mongoose-encryption`);
 const ejs = require(`ejs`);
 
 const app = express();
@@ -13,11 +14,15 @@ app.use(bodyParser.urlencoded({
 // connects mongoose to mongoDB
 mongoose.connect('mongodb://localhost:27017/userDB', { useNewUrlParser: true });
 
-// create an userSchema on which new models are gonna be created
-const userSchema = {
+// creates an userSchema class on which new user objects are gonaa be created
+const userSchema = new mongoose.Schema({
     email: String,
     password: String
-}
+});
+
+// Secret String Instead of Two Keys
+const secret = `this_Is_Our_Little_Secret`; // if a hacker is able to get into app.js then he can easily decrypt data using this secret variable
+userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password']});
 
 // creates an Users( plural ) Model on top of userSchema
 const User = new mongoose.model(`User`, userSchema);
@@ -61,13 +66,13 @@ app.post(`/login`, (req, res) => {
     // checks whether the given credentials exist or not
     // if yes then log `user exist`
     // else log `user does not exist`
-    User.findOne({email: userName, password: password}, (err, founduser)=>{
-        if(founduser){
+    User.findOne({ email: userName, password: password }, (err, founduser) => {
+        if (founduser) {
             // console.log(`user exist`, founduser);
             res.render(`/secrets`);
-        }else{
+        } else {
             // console.log(`user does not exist`, err);
-            
+
         }
     });
 
