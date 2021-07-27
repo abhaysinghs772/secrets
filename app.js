@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const express = require(`express`);
 const bodyParser = require(`body-parser`);
 const mongoose = require(`mongoose`);
@@ -21,8 +23,8 @@ const userSchema = new mongoose.Schema({
 });
 
 // Secret String Instead of Two Keys
-const secret = `this_Is_Our_Little_Secret`; // if a hacker is able to get into app.js then he can easily decrypt data using this secret variable
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password']});
+
+userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ['password']});
 
 // creates an Users( plural ) Model on top of userSchema
 const User = new mongoose.model(`User`, userSchema);
@@ -66,13 +68,15 @@ app.post(`/login`, (req, res) => {
     // checks whether the given credentials exist or not
     // if yes then log `user exist`
     // else log `user does not exist`
-    User.findOne({ email: userName, password: password }, (err, founduser) => {
+    User.findOne({ email: userName}, (err, founduser) => {
         if (founduser) {
-            // console.log(`user exist`, founduser);
-            res.render(`/secrets`);
+            if(founduser.password == password){
+                // console.log(`user exist`, founduser);
+                res.render(`secrets`);
+            }
         } else {
             // console.log(`user does not exist`, err);
-
+            console.log(err);
         }
     });
 
