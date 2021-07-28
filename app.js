@@ -5,6 +5,7 @@ const bodyParser = require(`body-parser`);
 const mongoose = require(`mongoose`);
 const encrypt = require(`mongoose-encryption`);
 const ejs = require(`ejs`);
+const md5 = require(`md5`);
 
 const app = express();
 app.use(express.static(`public`));
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema({
 
 // Secret String Instead of Two Keys
 
-userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ['password']});
+// userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ['password']});
 
 // creates an Users( plural ) Model on top of userSchema
 const User = new mongoose.model(`User`, userSchema);
@@ -48,7 +49,7 @@ app.post(`/register`, (req, res) => {
 
     const newUser = new User({
         email: req.body.username,
-        password: req.body.password
+        password: md5(req.body.password)
     });
 
     newUser.save((err) => {
@@ -63,7 +64,7 @@ app.post(`/register`, (req, res) => {
 // login
 app.post(`/login`, (req, res) => {
     const userName = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
 
     // checks whether the given credentials exist or not
     // if yes then log `user exist`
